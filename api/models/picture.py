@@ -1,5 +1,6 @@
 from api import db
 
+
 class Picture(db.Model):
     __tablename__ = 'pictures'
 
@@ -9,4 +10,5 @@ class Picture(db.Model):
     description = db.Column(db.String)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    user = db.relationship('User', back_populates='pictures')
+    user = db.relationship('User', back_populates='pictures', lazy=True)
+    comments = db.relationship('Comment', back_populates='picture', lazy=True)

@@ -9,5 +9,5 @@ class Comment(db.Model):
     content = db.Column(db.String, nullable=False)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    user = db.relationship('User', back_populates='comments')
-    picture = db.relationship('Picture', back_populates='comments')
+    user = db.relationship('User', back_populates='comments', lazy=True)
+    picture = db.relationship('Picture', back_populates='comments', lazy=True)
