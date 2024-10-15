@@ -11,4 +11,4 @@ class Picture(db.Model):
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     user = db.relationship('User', back_populates='pictures', lazy=True)
-    comments = db.relationship('Comment', back_populates='picture', lazy=True)
+    comments = db.relationship('Comment', back_populates='picture', lazy=True, cascade='all, delete-orphan')
