@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 from flask import Blueprint, request, jsonify
 from api import db, bcrypt
 from api.models.user import User
@@ -62,7 +63,8 @@ def login():
 @user_bp.route('/logout', methods=['POST'])
 def logout():
     # Logic to handle logout (e.t., clearing session)
-    return jsonify({"message": "Logged out successfully!"})
+    # return jsonify({"message": "Logged out successfully!"})
+    return jsonify({"message": "Logging out not implemented"})
 
 
 # Get a User's profile
@@ -124,6 +126,11 @@ def delete_user(user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
+    # Delete the user's pictures from the file system
+    for picture in user.pictures:
+        if os.path.exists(picture.image_url):
+            os.remove(picture.image_url)
+
     db.session.delete(user)
     db.session.commit()
     return jsonify({"message": "User deleted successfully!"}), 200
@@ -146,7 +153,7 @@ def get_all_users():
 
 
 # Change Password
-@user_bp.route('/user/<int:user_id>', methods=['PUT'], endpoint='change_password')
+@user_bp.route('/user/<int:user_id>/change-password', methods=['PUT'], endpoint='change_password')
 def change_password(user_id):
     """change a user's password"""
     # Retrieve user from db by user_id
@@ -172,7 +179,7 @@ def change_password(user_id):
 
 # Reset forgotten password
 @user_bp.route('/forgot-password', methods=['POST'], endpoint='forgot_password')
-def forgot_password(user_id):
+def forgot_password():
     """reset a user's forgotten password"""
     data = request.get_json()
     email = data.get('email')

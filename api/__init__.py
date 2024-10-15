@@ -21,12 +21,12 @@ def create_app():
     # Register blueprints (routes)
     from api.routes.base_routes import base_bp
     from api.routes.user_routes import user_bp
-    # from api.routes.picture_routes import picture_bp
+    from api.routes.picture_routes import picture_bp
     # from api.routes.comment_routes import comment_bp
 
     app.register_blueprint(base_bp)
     app.register_blueprint(user_bp)
-    # app.register_blueprint(picture_bp)
+    app.register_blueprint(picture_bp)
     # app.register_blueprint(comment_bp)
 
     return app
