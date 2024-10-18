@@ -1,6 +1,7 @@
 from uuid import uuid4
 from flask import Blueprint, request, jsonify
 from api import db
+from api.models.comment import Comment
 from api.models.picture import Picture
 import os
 from werkzeug.utils import secure_filename
@@ -139,3 +140,24 @@ def delete_picture(picture_id):
     db.session.commit()
 
     return jsonify({"message": "Picture deleted successfully!"}), 200
+
+
+# Search pictures by description
+@picture_bp.route('/pictures/search', methods=['GET'])
+def search_pictures():
+    """search for pictures by description"""
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify({"error": "Search query is required"}), 400
+
+    pictures = Picture.query.filter(Picture.description.ilike(f"%{query}%")).all()
+
+    pictures_list = [{
+        "id": picture.id,
+        "user_id": picture.user_id,
+        "image_url": picture.image_url,
+        "description": picture.description,
+        "timestamp": picture.timestamp,
+    } for picture in pictures]
+
+    return jsonify(pictures_list), 200
