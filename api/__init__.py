@@ -1,14 +1,16 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
 from .config import Config
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 jwt = JWTManager()
+migrate = Migrate()
 
 
 def create_app():
@@ -23,6 +25,9 @@ def create_app():
 
     # Initialize JWT
     jwt.init_app(app)
+
+    # Initialize Flask-Migrate
+    migrate.init_app(app, db)
 
     from api.models.tokenblacklist import TokenBlacklist
 
