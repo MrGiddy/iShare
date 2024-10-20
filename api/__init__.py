@@ -38,6 +38,14 @@ def create_app():
         token = TokenBlacklist.query.filter_by(jti=jti).first()
         return token is not None
 
+    @jwt.revoked_token_loader
+    def revoked_token_callback(jwt_header, jwt_payload):
+        return jsonify({"error": "The token has been revoked, please login again"}), 401
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return jsonify({"error": "Your token has expired, please login again"}), 401
+
     # Register blueprints (routes)
     from api.routes.base_routes import base_bp
     from api.routes.user_routes import user_bp
