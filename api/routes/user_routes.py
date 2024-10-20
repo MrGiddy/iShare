@@ -151,24 +151,6 @@ def delete_user():
     return jsonify({"message": "User deleted successfully!"}), 200
 
 
-# Get all users
-@user_bp.route('/users', methods=['GET'], endpoint='get_all_users')
-@jwt_required()
-@role_required('admin')
-def get_all_users():
-    """retrieve all users from database"""
-    users = User.query.all()
-    users_list = []
-    users_list = [{
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "role": user.role
-    } for user in users]
-
-    return jsonify(users_list), 200
-
-
 # Change Password
 @user_bp.route('/change-password', methods=['PUT'], endpoint='change_password')
 @jwt_required()
@@ -212,39 +194,3 @@ def forgot_password():
     # Example: Generate a reset token, send via email
     # return jsonify({"message": "Password reset email sent!"}), 200
     return jsonify({"message": "Password reset functionality not yet implemented."})
-
-
-@user_bp.route('/promote-user/<int:user_id>', methods=['PUT'], endpoint='promote_user')
-@jwt_required()
-@role_required('admin')
-def promote_user(user_id):
-    """give a user admin privileges"""
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    if user.role == 'admin':
-        return jsonify({"message": "User is already an admin"}), 400
-
-    user.role = 'admin'
-    db.session.commit()
-
-    return jsonify({"message": f"User {user.username} promoted to admin!"}), 200
-
-
-@user_bp.route('/demote-user/<int:user_id>', methods=['PUT'], endpoint='demote_admin')
-@jwt_required()
-@role_required('admin')
-def demote_admin(user_id):
-    """revoke admin privileges of a user"""
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    if user.role == 'user':
-        return jsonify({"message": "User is already a regular"}), 400
-
-    user.role = 'user'
-    db.session.commit()
-
-    return jsonify({"message": f"User {user.username} demoted to regular user!"}), 200

@@ -51,10 +51,12 @@ def create_app():
     from api.routes.user_routes import user_bp
     from api.routes.picture_routes import picture_bp
     from api.routes.comment_routes import comment_bp
+    from api.routes.admin_routes import admin_bp
 
     app.register_blueprint(base_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(picture_bp)
     app.register_blueprint(comment_bp)
+    app.register_blueprint(admin_bp)
 
     return app

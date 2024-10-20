@@ -90,24 +90,6 @@ def get_picture_by_id(picture_id):
     }), 200
 
 
-@picture_bp.route('/pictures', methods=['GET'])
-@jwt_required()
-@role_required('admin')
-def get_all_pictures():
-    """retrieve all pictures across all users"""
-    pictures = Picture.query.all()
-    return jsonify([
-        {
-            "id": picture.id,
-            "user_id": picture.user_id,
-            "image_url": picture.image_url,
-            "description": picture.description,
-            "created_at": picture.created_at,
-            "updated_at": picture.updated_at
-        } for picture in pictures
-    ]), 200
-
-
 @picture_bp.route('/user/pictures', methods=['GET'], endpoint='get_user_pictures')
 @jwt_required()
 def get_user_pictures():

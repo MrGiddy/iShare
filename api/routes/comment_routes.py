@@ -9,7 +9,7 @@ from api import db
 
 
 # Create a bp for comment-related routes
-comment_bp = Blueprint('main', __name__)
+comment_bp = Blueprint('comment_bp', __name__)
 
 
 # POST: Add a comment to a specific picture
@@ -145,25 +145,3 @@ def delete_comment(comment_id):
     db.session.commit()
 
     return jsonify({"message": "Comment deleted successfully!"}), 200
-
-
-# GET: Retrieve all the comments of a specific user
-@comment_bp.route('/user/<int:user_id>/comments', methods=['GET'])
-@role_required('admin')
-def get_user_comments(user_id):
-    """retrieve all of a specific user's comments"""
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    comments = Comment.query.filter_by(user_id=user_id).all()
-    comments_list = [{
-        "id": comment.id,
-        "user_id": comment.user_id,
-        "picture_id": comment.picture_id,
-        "content": comment.content,
-        "created_at": comment.created_at,
-        "updated_at": comment.updated_at
-    } for comment in comments]
-
-    return jsonify(comments_list), 200
