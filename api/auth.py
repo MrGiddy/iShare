@@ -20,17 +20,6 @@ def generate_token(user):
     return access_token
 
 
-def jwt_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        try:
-            verify_jwt_in_request()
-            return f(*args, **kwargs)
-        except Exception as err:
-            return jsonify({"error": "Invalid token"}), 401
-    return wrapper
-
-
 def role_required(role):
     def decorator(f):
         @wraps(f)

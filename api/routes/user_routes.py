@@ -3,8 +3,9 @@ import os
 from flask import Blueprint, request, jsonify
 from api import db
 from api.auth import authenticate_user, generate_token, role_required
+from api.models.tokenblacklist import TokenBlacklist
 from api.models.user import User
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt, jwt_required, get_jwt_identity
 
 
 # Create a Blueprint for user-related routes
@@ -32,7 +33,6 @@ def register():
     new_user = User()
     new_user.username = username
     new_user.email = email
-    # new_user.role = 'admin'
     new_user.set_password(password)
 
     db.session.add(new_user)
@@ -65,7 +65,12 @@ def login():
 @user_bp.route('/logout', methods=['POST'], endpoint='logout')
 @jwt_required()
 def logout():
-    # Logic to handle logout (e.t., clearing session)
+    """Logout the user by blacklisting their JWT token"""
+    jti = get_jwt()['jti']
+    token_blacklist = TokenBlacklist(jti=jti)
+    db.session.add(token_blacklist)
+    db.session.commit()
+
     return jsonify({"message": "Logged out successfully!"})
 
 

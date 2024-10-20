@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+
 from .config import Config
 from flask_jwt_extended import JWTManager
 
@@ -22,6 +23,15 @@ def create_app():
 
     # Initialize JWT
     jwt.init_app(app)
+
+    from api.models.tokenblacklist import TokenBlacklist
+
+    # Register JWT token blacklist checker
+    @jwt.token_in_blocklist_loader
+    def check_if_token_is_blacklisted(jwt_header, jwt_payload):
+        jti = jwt_payload["jti"]
+        token = TokenBlacklist.query.filter_by(jti=jti).first()
+        return token is not None
 
     # Register blueprints (routes)
     from api.routes.base_routes import base_bp
