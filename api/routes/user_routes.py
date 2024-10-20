@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import os
 from flask import Blueprint, request, jsonify
-from api import db, bcrypt
+from api import db
+from api.auth import authenticate_user, generate_token, role_required
 from api.models.user import User
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 # Create a Blueprint for user-related routes
@@ -10,7 +12,7 @@ user_bp = Blueprint('user_bp', __name__)
 
 
 # Registration route
-@user_bp.route('/register', methods=['POST'])
+@user_bp.route('/register', methods=['POST'], endpoint='register')
 def register():
     """register a user"""
     # Get sign up info from request object
@@ -26,11 +28,13 @@ def register():
     if existing_user:
         return jsonify({"error": "User with this email or username already exists"}), 400
 
-    # Hash the password
-    password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-
     # Create a new user and save to database
-    new_user = User(username=username, email=email, password_hash=password_hash)
+    new_user = User()
+    new_user.username = username
+    new_user.email = email
+    # new_user.role = 'admin'
+    new_user.set_password(password)
+
     db.session.add(new_user)
     db.session.commit()
 
@@ -39,7 +43,7 @@ def register():
 
 
 # Login route
-@user_bp.route('/login', methods=['POST'])
+@user_bp.route('/login', methods=['POST'], endpoint='login')
 def login():
     """login a User"""
     # Get login info from request object
@@ -49,30 +53,31 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
-    # Find the user by email
-    user = User.query.filter_by(email=email).first()
-
-    # Check if the user exists and the password is correct
-    good_password = bcrypt.check_password_hash(user.password_hash, password)
-    if user and good_password:
-        return jsonify({"message": f"Welcome {user.username}!"}), 200
-    else:
+    # authenticate user by email and password
+    user = authenticate_user(email, password)
+    if not user:
         return jsonify({"error": "Invalid email or password"}), 401
 
+    access_token = generate_token(user)
+    return jsonify(access_token=access_token), 200
 
-@user_bp.route('/logout', methods=['POST'])
+
+@user_bp.route('/logout', methods=['POST'], endpoint='logout')
+@jwt_required()
 def logout():
     # Logic to handle logout (e.t., clearing session)
-    # return jsonify({"message": "Logged out successfully!"})
-    return jsonify({"message": "Logging out not implemented"})
+    return jsonify({"message": "Logged out successfully!"})
 
 
-# Get a User's profile
-@user_bp.route('/user/<int:user_id>', methods=['GET'], endpoint='get_user_profile')
-def get_user_profile(user_id):
-    """retrieve a user's profile"""
+# Get current User's profile
+@user_bp.route('/user', methods=['GET'], endpoint='get_user_profile')
+@jwt_required()
+def get_user_profile():
+    """retrieve current user's profile"""
+    current_user_id = get_jwt_identity()
+
     # Retrieve a user from the database
-    user = User.query.get(user_id)
+    user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -85,11 +90,14 @@ def get_user_profile(user_id):
     return jsonify(user_profile), 200
 
 
-# Update a User's profile
-@user_bp.route('/user/<int:user_id>', methods=['PUT'], endpoint='update_user_profile')
-def update_user_profile(user_id):
+# Update current User's profile
+@user_bp.route('/user', methods=['PUT'], endpoint='update_user_profile')
+@jwt_required()
+def update_user_profile():
     """update a user's profile"""
-    user = User.query.get(user_id)
+    current_user_id = get_jwt_identity()
+
+    user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "User not found"})
 
@@ -101,15 +109,14 @@ def update_user_profile(user_id):
     # Check if the new username or email is already taken
     if username:
         user_by_username = User.query.filter_by(username=username).first()
-        print(user_by_username)
-        if user_by_username and user_by_username.id != user_id:
+        if user_by_username and user_by_username.id != current_user_id:
             return jsonify({"error": "Username already exists"}), 400
         else:
             user.username = username
 
     if email:
         user_by_email = User.query.filter_by(email=email).first()
-        if user_by_email and user_by_email.id != user_id:
+        if user_by_email and user_by_email.id != current_user_id:
             return jsonify({"error": "Email already exists"}), 400
         else:
             user.email = email
@@ -118,11 +125,14 @@ def update_user_profile(user_id):
     return jsonify({"message": "User profile updated successfully!"}), 200
 
 
-# Delete a User
-@user_bp.route('/user/<int:user_id>', methods=['DELETE'], endpoint='delete_user')
-def delete_user(user_id):
-    """delete a user"""
-    user = User.query.get(user_id)
+# Delete current user
+@user_bp.route('/user', methods=['DELETE'], endpoint='delete_user')
+@jwt_required()
+def delete_user():
+    """delete the current user"""
+    current_user_id = get_jwt_identity()
+
+    user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -138,26 +148,31 @@ def delete_user(user_id):
 
 # Get all users
 @user_bp.route('/users', methods=['GET'], endpoint='get_all_users')
+@jwt_required()
+@role_required('admin')
 def get_all_users():
     """retrieve all users from database"""
     users = User.query.all()
     users_list = []
-    for user in users:
-        users_list.append({
-            "id": user.id,
-            "username": user.username,
-            "email": user.email
-        })
+    users_list = [{
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role
+    } for user in users]
 
     return jsonify(users_list), 200
 
 
 # Change Password
-@user_bp.route('/user/<int:user_id>/change-password', methods=['PUT'], endpoint='change_password')
-def change_password(user_id):
+@user_bp.route('/change-password', methods=['PUT'], endpoint='change_password')
+@jwt_required()
+def change_password():
     """change a user's password"""
+    current_user_id = get_jwt_identity()
+
     # Retrieve user from db by user_id
-    user = User.query.get(user_id)
+    user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -192,3 +207,39 @@ def forgot_password():
     # Example: Generate a reset token, send via email
     # return jsonify({"message": "Password reset email sent!"}), 200
     return jsonify({"message": "Password reset functionality not yet implemented."})
+
+
+@user_bp.route('/promote-user/<int:user_id>', methods=['PUT'], endpoint='promote_user')
+@jwt_required()
+@role_required('admin')
+def promote_user(user_id):
+    """give a user admin privileges"""
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if user.role == 'admin':
+        return jsonify({"message": "User is already an admin"}), 400
+
+    user.role = 'admin'
+    db.session.commit()
+
+    return jsonify({"message": f"User {user.username} promoted to admin!"}), 200
+
+
+@user_bp.route('/demote-user/<int:user_id>', methods=['PUT'], endpoint='demote_admin')
+@jwt_required()
+@role_required('admin')
+def demote_admin(user_id):
+    """revoke admin privileges of a user"""
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if user.role == 'user':
+        return jsonify({"message": "User is already a regular"}), 400
+
+    user.role = 'user'
+    db.session.commit()
+
+    return jsonify({"message": f"User {user.username} demoted to regular user!"}), 200
