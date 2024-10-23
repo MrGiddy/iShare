@@ -39,7 +39,7 @@ def register():
     db.session.commit()
 
     # Return a success message
-    return jsonify({"message": "User registerd successfully!"}), 201
+    return jsonify({"message": "User registered successfully!"}), 201
 
 
 # Login route
@@ -59,7 +59,7 @@ def login():
         return jsonify({"error": "Invalid email or password"}), 401
 
     access_token = generate_token(user)
-    return jsonify(access_token=access_token), 200
+    return jsonify({"message": "Login successful!", "access_token": access_token})
 
 
 @user_bp.route('/logout', methods=['POST'], endpoint='logout')
@@ -87,12 +87,16 @@ def get_user_profile():
         return jsonify({"error": "User not found"}), 404
 
     # Return user details (except password_hash)
-    user_profile = {
+    return jsonify({
+    "message": "Profile retrieved successfully",
+    "user": {
         "id": user.id,
+        "email": user.email,
         "username": user.username,
-        "email": user.email
+        "created_at": user.created_at,
+        "updated_at": user.updated_at
     }
-    return jsonify(user_profile), 200
+    }), 200
 
 
 # Update current User's profile
@@ -125,9 +129,18 @@ def update_user_profile():
             return jsonify({"error": "Email already exists"}), 400
         else:
             user.email = email
+            db.session.refresh(user)
 
     db.session.commit()
-    return jsonify({"message": "User profile updated successfully!"}), 200
+    return jsonify({
+        "message": "User profile updated successfully!",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at
+        }}), 200
 
 
 # Delete current user
@@ -148,7 +161,7 @@ def delete_user():
 
     db.session.delete(user)
     db.session.commit()
-    return jsonify({"message": "User deleted successfully!"}), 200
+    return jsonify({"message": "User account deleted successfully!"}), 200
 
 
 # Change Password

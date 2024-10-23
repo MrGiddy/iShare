@@ -1,7 +1,8 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-
+from flask_swagger_ui import get_swaggerui_blueprint
 from .config import Config
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
@@ -13,11 +14,26 @@ jwt = JWTManager()
 migrate = Migrate()
 
 
+# Swagger configuration
+SWAGGER_URL = '/swagger'
+API_URL = '/static/swagger.json'  # Path to the API documentation file
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,  # Swagger UI static url
+    API_URL,      # Swagger UI doc path
+    config={
+        'app_name': "iShare API"
+    }
+)
+
+
 def create_app():
     app = Flask(__name__)
 
     # Load the configuration
     app.config.from_object(Config)
+
+    # Configure cors
+    CORS(app, resources={r"*": {"origins": "*"}})
 
     # Initialize the database and bcrypt
     db.init_app(app)
@@ -53,10 +69,12 @@ def create_app():
     from api.routes.comment_routes import comment_bp
     from api.routes.admin_routes import admin_bp
 
-    app.register_blueprint(base_bp)
-    app.register_blueprint(user_bp)
-    app.register_blueprint(picture_bp)
-    app.register_blueprint(comment_bp)
-    app.register_blueprint(admin_bp)
+    app.register_blueprint(base_bp, url_prefix='/api')
+    app.register_blueprint(user_bp, url_prefix='/api')
+    app.register_blueprint(picture_bp, url_prefix='/api')
+    app.register_blueprint(comment_bp, url_prefix='/api')
+    app.register_blueprint(admin_bp, url_prefix='/api')
+
+    app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
     return app
