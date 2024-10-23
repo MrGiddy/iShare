@@ -1,0 +1,730 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "iShare API",
+    "description": "Documentation for iShare API"
+  },
+  "basePath": "/api",
+  "schemes": ["http"],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Register a new user",
+        "description": "Registers a new user with a username, email, and password.",
+        "operationId": "registerUser",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User's registration details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "User with this email or username already exists"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Login a user",
+        "description": "Authenticates a user by email and password, and returns an access token.",
+        "operationId": "loginUser",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Login details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" },
+                "token": { "type": "string" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password"
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Logout the user",
+        "description": "Logs out the current user by blacklisting their JWT token.",
+        "operationId": "logoutUser",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged out successfully"
+          }
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get current user's profile",
+        "description": "Returns the profile details of the authenticated user.",
+        "operationId": "getUserProfile",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "email": { "type": "string" },
+                    "username": { "type": "string" },
+                    "created_at": { "type": "string", "format": "date-time" },
+                    "updated_at": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["User"],
+        "summary": "Update current user's profile",
+        "description": "Updates the profile information of the authenticated user.",
+        "operationId": "updateUserProfile",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Updated user information",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": { "type": "string" },
+                "email": { "type": "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile updated successfully"
+          },
+          "400": {
+            "description": "Username or email already exists"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete the current user",
+        "description": "Deletes the authenticated user's account.",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User account deleted successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/change-password": {
+      "put": {
+        "tags": ["User"],
+        "summary": "Change current user's password",
+        "description": "Changes the password of the authenticated user.",
+        "operationId": "changePassword",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Password change details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "current_password": { "type": "string" },
+                "new_password": { "type": "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password updated successfully"
+          },
+          "400": {
+            "description": "Current password is incorrect"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/forgot-password": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Reset forgotten password",
+        "description": "Initiates a password reset process for users who have forgotten their password.",
+        "operationId": "forgotPassword",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User's email",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": { "type": "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset functionality not yet implemented"
+          },
+          "404": {
+            "description": "No user with that email found"
+          }
+        }
+      }
+    },
+    "/pictures/upload": {
+      "post": {
+        "tags": ["Pictures"],
+        "summary": "Upload a new picture",
+        "description": "Upload a picture with a dynamic description.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "The image file to upload.",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "description": "The description of the picture.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Picture uploaded successfully.",
+            "schema": {
+              "$ref": "#/definitions/Picture"
+            }
+          },
+          "400": {
+            "description": "Invalid input or file type not allowed."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        }
+      }
+    },
+    "/pictures/{picture_id}": {
+      "get": {
+        "tags": ["Pictures"],
+        "summary": "Retrieve a picture by ID",
+        "description": "Fetch a picture using its ID.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "name": "picture_id",
+            "in": "path",
+            "description": "ID of the picture",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Picture details",
+            "schema": {
+              "$ref": "#/definitions/Picture"
+            }
+          },
+          "404": {
+            "description": "Picture not found."
+          }
+        }
+      },
+      "put": {
+        "tags": ["Pictures"],
+        "summary": "Update picture metadata",
+        "description": "Update the description of a picture.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "name": "picture_id",
+            "in": "path",
+            "description": "ID of the picture",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "description": "The updated description of the picture.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Picture updated successfully.",
+            "schema": {
+              "$ref": "#/definitions/Picture"
+            }
+          },
+          "403": {
+            "description": "Unauthorized to update this picture."
+          },
+          "404": {
+            "description": "Picture not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Pictures"],
+        "summary": "Delete a picture",
+        "description": "Remove a picture by its ID.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "name": "picture_id",
+            "in": "path",
+            "description": "ID of the picture",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Picture deleted successfully."
+          },
+          "403": {
+            "description": "Unauthorized to delete this picture."
+          },
+          "404": {
+            "description": "Picture not found."
+          }
+        }
+      }
+    },
+    "/user/pictures": {
+      "get": {
+        "tags": ["Pictures"],
+        "summary": "Get all user pictures",
+        "description": "Retrieve all pictures uploaded by the current user.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of user's pictures.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Picture"
+              }
+            }
+          },
+          "404": {
+            "description": "User not found."
+          }
+        }
+      }
+    },
+    "/pictures/search": {
+      "get": {
+        "tags": ["Pictures"],
+        "summary": "Search pictures by description",
+        "description": "Search for pictures using a description keyword.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pictures matching the search query.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Picture"
+              }
+            }
+          },
+          "400": {
+            "description": "Search query is required."
+          }
+        }
+      }
+    },
+    "/pictures/{picture_id}/comments": {
+      "post": {
+        "tags": ["Comments"],
+        "summary": "Add a comment to a picture",
+        "description": "Allows an authenticated user to add a comment to a specific picture.",
+        "operationId": "addComment",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "in": "path",
+            "name": "picture_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the picture"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Comment content",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "Content of the comment"
+                }
+              },
+              "required": ["content"]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Comment added successfully"
+          },
+          "400": {
+            "description": "Comment content is required"
+          },
+          "404": {
+            "description": "Picture or user not found"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Comments"],
+        "summary": "Retrieve all comments for a picture",
+        "description": "Fetches all comments associated with a specific picture.",
+        "operationId": "getComments",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "in": "path",
+            "name": "picture_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the picture"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of comments retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "user_id": { "type": "integer" },
+                  "picture_id": { "type": "integer" },
+                  "content": { "type": "string" },
+                  "created_at": { "type": "string", "format": "date-time" },
+                  "updated_at": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Picture not found"
+          }
+        }
+      }
+    },
+    "/comments/{comment_id}": {
+      "get": {
+        "tags": ["Comments"],
+        "summary": "Retrieve a specific comment",
+        "description": "Fetches a comment by its ID.",
+        "operationId": "getComment",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "in": "path",
+            "name": "comment_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the comment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment retrieved successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "user_id": { "type": "integer" },
+                "picture_id": { "type": "integer" },
+                "content": { "type": "string" },
+                "created_at": { "type": "string", "format": "date-time" },
+                "updated_at": { "type": "string", "format": "date-time" }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Comments"],
+        "summary": "Update a specific comment",
+        "description": "Allows the owner of the comment to update its content.",
+        "operationId": "updateComment",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "in": "path",
+            "name": "comment_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the comment"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "New comment content",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "New content of the comment"
+                }
+              },
+              "required": ["content"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment updated successfully"
+          },
+          "400": {
+            "description": "Comment content is required"
+          },
+          "403": {
+            "description": "Unauthorized to update this comment"
+          },
+          "404": {
+            "description": "Comment not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Comments"],
+        "summary": "Delete a specific comment",
+        "description": "Allows the owner of the comment to delete it.",
+        "operationId": "deleteComment",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for the user session"
+          },
+          {
+            "in": "path",
+            "name": "comment_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the comment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment deleted successfully"
+          },
+          "403": {
+            "description": "Unauthorized to delete this comment"
+          },
+          "404": {
+            "description": "Comment not found"
+          }
+        }
+      }
+    }
+  }
+}
