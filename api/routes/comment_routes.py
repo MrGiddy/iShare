@@ -18,7 +18,7 @@ comment_bp = Blueprint('comment_bp', __name__)
 def add_comment(picture_id):
     """add a comment to a picture"""
     data = request.get_json()
-    user_id = data.get('user_id')
+    current_user_id = get_jwt_identity()
     content = data.get('content')
 
     if not content:
@@ -28,11 +28,11 @@ def add_comment(picture_id):
     if not picture:
         return jsonify({"error": "Picture not found"}), 404
 
-    user = User.query.get(user_id)
+    user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    new_comment = Comment(user_id=user_id, picture_id=picture_id, content=content)
+    new_comment = Comment(user_id=current_user_id, picture_id=picture_id, content=content)
     db.session.add(new_comment)
     db.session.commit()
 
