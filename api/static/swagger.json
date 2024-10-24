@@ -316,7 +316,15 @@
           "201": {
             "description": "Picture uploaded successfully.",
             "schema": {
-              "$ref": "#/definitions/Picture"
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "user_id": { "type": "integer" },
+                "image_url": { "type": "string" },
+                "description": { "type": "string" },
+                "created_at": { "type": "string", "format": "date-time" },
+                "updated_at": { "type": "string", "format": "date-time" }
+              }
             }
           },
           "400": {
@@ -353,7 +361,15 @@
           "200": {
             "description": "Picture details",
             "schema": {
-              "$ref": "#/definitions/Picture"
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "user_id": { "type": "integer" },
+                "image_url": { "type": "string" },
+                "description": { "type": "string" },
+                "created_at": { "type": "string", "format": "date-time" },
+                "updated_at": { "type": "string", "format": "date-time" }
+              }
             }
           },
           "404": {
@@ -392,7 +408,15 @@
           "200": {
             "description": "Picture updated successfully.",
             "schema": {
-              "$ref": "#/definitions/Picture"
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "user_id": { "type": "integer" },
+                "image_url": { "type": "string" },
+                "description": { "type": "string" },
+                "created_at": { "type": "string", "format": "date-time" },
+                "updated_at": { "type": "string", "format": "date-time" }
+              }
             }
           },
           "403": {
@@ -456,7 +480,15 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/Picture"
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "user_id": { "type": "integer" },
+                  "image_url": { "type": "string" },
+                  "description": { "type": "string" },
+                  "created_at": { "type": "string", "format": "date-time" },
+                  "updated_at": { "type": "string", "format": "date-time" }
+                }
               }
             }
           },
@@ -493,7 +525,15 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/Picture"
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "user_id": { "type": "integer" },
+                  "image_url": { "type": "string" },
+                  "description": { "type": "string" },
+                  "created_at": { "type": "string", "format": "date-time" },
+                  "updated_at": { "type": "string", "format": "date-time" }
+                }
               }
             }
           },
@@ -722,6 +762,219 @@
           },
           "404": {
             "description": "Comment not found"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all users",
+        "description": "Retrieve all users from database. Requires admin role.",
+        "operationId": "getAllUsers",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for admin session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all users",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "username": { "type": "string" },
+                  "email": { "type": "string" },
+                  "role": { "type": "string" }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access - Admin privileges required"
+          }
+        }
+      }
+    },
+    "/pictures": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all pictures",
+        "description": "Retrieve all pictures across all users. Requires admin role.",
+        "operationId": "getAllPictures",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for admin session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all pictures",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "user_id": { "type": "integer" },
+                  "image_url": { "type": "string" },
+                  "description": { "type": "string" },
+                  "created_at": { "type": "string", "format": "date-time" },
+                  "updated_at": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access - Admin privileges required"
+          }
+        }
+      }
+    },
+    "/user/{user_id}/comments": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get user comments",
+        "description": "Retrieve all comments of a specific user. Requires admin role.",
+        "operationId": "getUserComments",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for admin session"
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the user"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user's comments",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "user_id": { "type": "integer" },
+                  "picture_id": { "type": "integer" },
+                  "content": { "type": "string" },
+                  "created_at": { "type": "string", "format": "date-time" },
+                  "updated_at": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access - Admin privileges required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/promote-user/{user_id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Promote user to admin",
+        "description": "Give a user admin privileges. Requires admin role.",
+        "operationId": "promoteUser",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for admin session"
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the user to promote"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User promoted successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" }
+              }
+            }
+          },
+          "400": {
+            "description": "User is already an admin"
+          },
+          "403": {
+            "description": "Unauthorized access - Admin privileges required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/demote-user/{user_id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Demote admin to regular user",
+        "description": "Revoke admin privileges of a user. Requires admin role.",
+        "operationId": "demoteUser",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "Bearer token for admin session"
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the user to demote"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User demoted successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" }
+              }
+            }
+          },
+          "400": {
+            "description": "User is already a regular user"
+          },
+          "403": {
+            "description": "Unauthorized access - Admin privileges required"
+          },
+          "404": {
+            "description": "User not found"
           }
         }
       }
